@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Web Flasher BY ME</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 650px; margin: 40px auto; padding: 20px; background: #f4f6f9; color: #333; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        button { padding: 12px 24px; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; border: none; background: #007acc; color: white; margin-right: 5px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .erase-btn { background: #d9534f; }
+        .tab-container { display: flex; border-bottom: 2px solid #ccc; margin-bottom: 15px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -2px; background: #e9ecef; margin-right: 5px; border-radius: 4px 4px 0 0; font-weight: bold; }
+        .tab.active { background: #fff; border-color: #ccc; color: #007acc; border-bottom: 2px solid #fff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .file-group { margin-bottom: 10px; }
+        label { font-weight: bold; display: inline-block; width: 150px; }
+        .log { background: #1e1e1e; color: #00ff00; padding: 15px; height: 200px; overflow-y: auto; font-family: monospace; border-radius: 6px; font-size: 13px; margin-top: 15px; }
+    </style>
+    <!-- Sử dụng thư viện CDN bảo mật chạy trên môi trường mạng -->
+    <script src="https://cloudflare.com"></script>
+</head>
+<body>
+
+    <h2>Trang Nạp Firmware Tự Động (Bản Chạy Trên Mạng)</h2>
+
+    <div class="card">
+        <button id="connectBtn" onclick="ketNoiThietBi()">🔌 Kết nối Thiết bị</button>
+        <button id="eraseBtn" class="erase-btn" onclick="xoaBoNhoFlash()" disabled>🗑️ Xóa sạch bộ nhớ Flash</button>
+        <span id="statusText" style="margin-left: 15px; font-weight: bold; color: red;">Chưa kết nối</span>
+    </div>
+
+    <div class="card">
+        <div class="tab-container">
+            <div id="tabPa1" class="tab active" onclick="chuyenPhuongAn('pa1')">Phương án 1: Nạp 3 File Rời</div>
+            <div id="tabPa2" class="tab" onclick="clickTabPhuongAn2()">Phương án 2: Nạp 1 File Gộp (Merged)</div>
+        </div>
+
+        <!-- PHƯƠNG ÁN 1 -->
+        <div id="contentPa1" class="tab-content active">
+            <div class="file-group">
+                <label>1. Bootloader:</label>
+                <input type="file" id="bootloaderFile" accept=".bin">
+                Offset: <input type="text" value="0x0000" style="width:70px; text-align:center;" readonly>
+            </div>
+            <div class="file-group">
+                <label>2. Partition Table:</label>
+                <input type="file" id="partitionFile" accept=".bin">
+                Offset: <input type="text" value="0x8000" style="width:70px; text-align:center;" readonly>
+            </div>
+            <div class="file-group">
+                <label>3. App (Chính):</label>
+                <input type="file" id="appFile" accept=".bin">
+                Offset: <input type="text" value="0x10000" style="width:70px; text-align:center;" readonly>
+            </div>
+            <button id="flashPa1Btn" onclick="napBaFile()" disabled style="background: #28a745; margin-top: 10px;">⚡ Bắt đầu nạp 3 file</button>
+        </div>
+
+        <!-- PHƯƠNG ÁN 2 -->
+        <div id="contentPa2" class="tab-content">
+            <div class="file-group">
+                <label>File Gộp (.bin):</label>
+                <input type="file" id="mergedFile" accept=".bin">
+                Offset: <input type="text" value="0x0" style="width:70px; text-align:center;" readonly>
+            </div>
+            <button id="flashPa2Btn" onclick="napFileGop()" disabled style="background: #28a745; margin-top: 10px;">⚡ Bắt đầu nạp file gộp</button>
+        </div>
+    </div>
+
+    <h3>Nhật ký hoạt động:</h3>
+    <div id="log" class="log"></div>
+
+    <script>
+        const ESPLoader = window.esptooljs.ESPLoader;
+        const Transport = window.esptooljs.Transport;
+
+        let transport = null;
+        let esploader = null;
+
+        const logDiv = document.getElementById("log");
+        const statusText = document.getElementById("statusText");
+        const connectBtn = document.getElementById("connectBtn");
+        const eraseBtn = document.getElementById("eraseBtn");
+        const flashPa1Btn = document.getElementById("flashPa1Btn");
+        const flashPa2Btn = document.getElementById("flashPa2Btn");
+
+        function log(text) {
+            logDiv.innerHTML += text + "<br>";
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function chuyenPhuongAn(pa) {
+            document.getElementById("tabPa1").className = (pa === 'pa1') ? "tab active" : "tab";
+            document.getElementById("tabPa2").className = (pa === 'pa2') ? "tab active" : "tab";
+            document.getElementById("contentPa1").className = (pa === 'pa1') ? "tab-content active" : "tab-content";
+            document.getElementById("contentPa2").className = (pa === 'pa2') ? "tab-content active" : "tab-content";
+        }
+
+        function clickTabPhuongAn2() {
+            chuyenPhuongAn('pa2');
+            log("📂 Đã chuyển giao diện sang: <b>Phương án 2</b>");
+        }
+
+        async function ketNoiThietBi() {
+            let device;
+            try {
+                device = await navigator.serial.requestPort();
+            } catch (err) {
+                log(`<span style="color:orange;">⚠️ Bạn đã đóng cửa sổ chọn cổng COM!</span>`);
+                return;
+            }
+
+            try {
+                statusText.textContent = "Đang kết nối...";
+                statusText.style.color = "orange";
+                
+                transport = new Transport(device);
+                esploader = new ESPLoader({
+                    transport: transport,
+                    baudrate: 921600,
+                    terminal: {
+                        clean() { logDiv.innerHTML = ""; },
+                        writeData(data) { log(data); },
+                        writeLine(data) { log(data); }
+                    }
+                });
+
+                log("⏳ Đang bắt tay và đọc chip...");
+                const chipName = await esploader.main();
+
+                statusText.textContent = `Đã kết nối: ${chipName}`;
+                statusText.style.color = "green";
+                connectBtn.textContent = "🔌 Đã Kết Nối";
+
+                eraseBtn.disabled = false;
+                flashPa1Btn.disabled = false;
+                flashPa2Btn.disabled = false;
+                
+                log(`✅ <b>ĐÃ KẾT NỐI THÀNH CÔNG!</b> Chip: <b>${chipName}</b> sẵn sàng.`);
+            } catch (err) {
+                log(`❌ Lỗi kết nối: ${err.message}`);
+                statusText.textContent = "Kết nối thất bại";
+                statusText.style.color = "red";
+            }
+        }
+
+        function docFilePhânVùng(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function napBaFile() {
+            const bootF = document.getElementById("bootloaderFile").files;
+            const partF = document.getElementById("partitionFile").files;
+            const appF = document.getElementById("appFile").files;
+            if (bootF.length === 0 || partF.length === 0 || appF.length === 0) { alert("Vui lòng chọn đủ 3 file!"); return; }
+            try {
+                log("⚡ Đang ghi dữ liệu phân vùng vào bộ nhớ Flash...");
+                const fileArray = [];
+                const bBin = await docFilePhânVùng(bootF[0]);
+                fileArray.push({ data: new Uint8Array(bBin), address: 0x0000 });
+                const pBin = await docFilePhânVùng(partF[0]);
+                fileArray.push({ data: new Uint8Array(pBin), address: 0x8000 });
+                const aBin = await docFilePhânVùng(appF[0]);
+                fileArray.push({ data: new Uint8Array(aBin), address: 0x10000 });
+                await esploader.write_flash(fileArray, "keep", undefined, undefined, false, true);
+                log("🎉 <b>NẠP FIRMWARE THÀNH CÔNG!</b> Nhấn nút RST.");
+            } catch (err) { log(`❌ Lỗi nạp: ${err.message}`); }
+        }
+
+        async function napFileGop() {
+            const fileF = document.getElementById("mergedFile").files;
+            if (fileF.length === 0) { alert("Vui lòng chọn file .bin đã gộp!"); return; }
+            try {
+                log("⚡ Đang ghi file gộp từ địa chỉ 0x0...");
+                const binary = await docFilePhânVùng(fileF[0]);
+                const fileArray = [{ data: new Uint8Array(binary), address: 0x0 }];
+                await esploader.write_flash(fileArray, "keep", undefined, undefined, false, true);
+                log("🎉 <b>NẠP FILE GỘP THÀNH CÔNG!</b> Nhấn nút RST.");
+            } catch (err) { log(`❌ Lỗi nạp file gộp: ${err.message}`); }
+        }
+
+        async function xoaBoNhoFlash() {
+            if (!esploader) return;
+            if (confirm("Bạn có chắc chắn muốn xóa bộ nhớ mạch?")) {
+                try { log("⏳ Đang xóa toàn bộ Flash..."); await esploader.erase_flash(); log("✅ Xóa thành công!"); } catch (err) { log(`❌ Lỗi: ${err.message}`); }
+            }
+        }
+    </script>
+</body>
+</html>
