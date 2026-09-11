@@ -1,197 +1,561 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Web Flasher BY ME</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 650px; margin: 40px auto; padding: 20px; background: #f4f6f9; color: #333; }
-        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        button { padding: 12px 24px; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; border: none; background: #007acc; color: white; margin-right: 5px; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .erase-btn { background: #d9534f; }
-        .tab-container { display: flex; border-bottom: 2px solid #ccc; margin-bottom: 15px; }
-        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -2px; background: #e9ecef; margin-right: 5px; border-radius: 4px 4px 0 0; font-weight: bold; }
-        .tab.active { background: #fff; border-color: #ccc; color: #007acc; border-bottom: 2px solid #fff; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .file-group { margin-bottom: 10px; }
-        label { font-weight: bold; display: inline-block; width: 150px; }
-        .log { background: #1e1e1e; color: #00ff00; padding: 15px; height: 200px; overflow-y: auto; font-family: monospace; border-radius: 6px; font-size: 13px; margin-top: 15px; }
-    </style>
-    <!-- Sử dụng thư viện CDN bảo mật chạy trên môi trường mạng -->
-    <script src="https://cloudflare.com"></script>
+
+    <title>ESP32 Flasher</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="compact-ui.css">
 </head>
+
 <body>
 
-    <h2>Trang Nạp Firmware Tự Động (Bản Chạy Trên Mạng)</h2>
+    <div class="background-grid"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
 
-    <div class="card">
-        <button id="connectBtn" onclick="ketNoiThietBi()">🔌 Kết nối Thiết bị</button>
-        <button id="eraseBtn" class="erase-btn" onclick="xoaBoNhoFlash()" disabled>🗑️ Xóa sạch bộ nhớ Flash</button>
-        <span id="statusText" style="margin-left: 15px; font-weight: bold; color: red;">Chưa kết nối</span>
-    </div>
+    <main class="app">
 
-    <div class="card">
-        <div class="tab-container">
-            <div id="tabPa1" class="tab active" onclick="chuyenPhuongAn('pa1')">Phương án 1: Nạp 3 File Rời</div>
-            <div id="tabPa2" class="tab" onclick="clickTabPhuongAn2()">Phương án 2: Nạp 1 File Gộp (Merged)</div>
+        <!-- DEMO HEADER / BRAND -->
+        <header class="header demo-header">
+            <button class="demo-nav-button" type="button" aria-label="Menu">☰</button>
+            <a class="demo-header-logo" href="#" aria-label="ECM voVuong">
+                <img src="assets/ecm-vovuong-logo.png" alt="ECM voVuong">
+            </a>
+            <button class="demo-settings-button" id="adminSettingsButton" type="button" aria-label="Settings">⚙</button>
+        </header>
+
+        <!-- HERO / STATUS -->
+        <section class="hero demo-hero">
+            <div class="status-pill" id="statusPill">
+                <span class="status-dot"></span>
+                <span id="statusText">DEVICE NOT CONNECTED</span>
+            </div>
+            <p>Professional ESP32 firmware tools.</p>
+        </section>
+
+
+        <!-- FIRMWARE CARD -->
+        <section class="card firmware-card compact-firmware-card">
+
+            <div class="card-header">
+
+                <div>
+                    <div class="card-title">
+                        Firmware
+                    </div>
+
+                    <div class="card-description">
+                        upload your firmware
+                    </div>
+                </div>
+
+                <div class="file-icon">
+                    .BIN
+                </div>
+
+            </div>
+
+
+            <!-- DROP ZONE -->
+            <div
+                class="drop-zone compact-drop-zone"
+                id="dropZone"
+            >
+
+                <div class="upload-icon">
+                    ↑
+                </div>
+
+                <div class="upload-title">
+                    Drop firmware here
+                </div>
+
+                <div class="upload-subtitle">
+                    or select one or more .BIN files from your computer
+                </div>
+
+                <button
+                    class="secondary-button"
+                    id="selectFileButton"
+                >
+                    <span>📁</span>
+                    SELECT .BIN FILE
+                </button>
+
+                <input
+                    type="file"
+                    id="firmwareInput"
+                    accept=".bin"
+                    multiple
+                    hidden
+                >
+
+            </div>
+
+
+            <!-- FILE INFO -->
+            <div
+                class="file-info hidden compact-file-info"
+                id="fileInfo"
+            >
+
+                <div class="file-main">
+
+                    <div class="file-type">
+                        BIN
+                    </div>
+
+                    <div class="file-details">
+
+                        <div
+                            class="file-name"
+                            id="fileName"
+                        >
+                            firmware.bin
+                        </div>
+
+                        <div
+                            class="file-size"
+                            id="fileSize"
+                        >
+                            0 MB
+                        </div>
+
+                        <div
+                            id="firmwareAnalysis"
+                            style="margin-top:6px;font-size:11px;opacity:.85;letter-spacing:.02em;"
+                        >
+                            Waiting for firmware analysis…
+                        </div>
+
+                        <div id="firmwareTargetGuard" class="firmware-target-guard hidden">
+                            <div class="firmware-target-line">
+                                <span>FIRMWARE TARGET</span>
+                                <strong id="firmwareTargetStatus">UNKNOWN</strong>
+                            </div>
+                            <div id="firmwareTargetConfirm" class="firmware-target-confirm hidden">
+                                <select id="firmwareTargetSelect" aria-label="Firmware target confirmation">
+                                    <option value="">CONFIRM TARGET…</option>
+                                    <option value="ESP32">ESP32</option>
+                                    <option value="ESP32-S3">ESP32-S3</option>
+                                    <option value="ESP32-C3">ESP32-C3</option>
+                                </select>
+                                <label>
+                                    <input type="checkbox" id="firmwareTargetCheckbox">
+                                    I confirm this firmware target
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    class="remove-button"
+                    id="removeFile"
+                    title="Remove firmware"
+                >
+                    ×
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- WEB FIRMWARE: directly below the unchanged Firmware Card -->
+        <section class="card web-firmware-card compact-web-firmware-card">
+            <div class="web-firmware-heading">
+                <div>
+                    <div class="card-title">Select Firmware</div>
+                    <div class="card-description">choose firmware according to the pre-built project • press FLASH ESP32 to start</div>
+                </div>
+                <div class="web-firmware-badge">WEB</div>
+            </div>
+
+            <div class="web-firmware-select-wrap">
+                <span class="web-firmware-prefix">›</span>
+                <select id="webFirmwareSelect" aria-label="Web firmware">
+                    <option value="">SELECT FIRMWARE </option>
+                </select>
+                <span class="web-firmware-chevron">⌄</span>
+            </div>
+
+            <div class="web-firmware-note">
+                <span class="web-firmware-dot"></span>
+                Only one source can be active: LOCAL .BIN or WEB FIRMWARE
+            </div>
+        </section>
+
+
+        <!-- DEVICE -->
+        <section class="device-grid compact-device-grid">
+
+            <div class="card device-card compact-device-card">
+
+                <div class="card-header">
+
+                    <div>
+                        <div class="card-title">
+                            Device
+                        </div>
+
+                        <div class="card-description">
+                            USB serial connection
+                        </div>
+                    </div>
+
+                    <div
+                        class="connection-indicator"
+                        id="connectionIndicator"
+                    >
+                        <span></span>
+                    </div>
+
+                </div>
+                <!--   Phan them drop box vao  -->
+                <div class="chip-selector compact-chip-selector">
+
+                    <label for="chipType">
+                        TARGET CHIP
+                    </label>
+                    <select id="chipType" aria-label="Target chip">
+                        <option value="ESP32_S3">ESP32-S3</option>
+                    </select>
+                </div>
+
+
+                <div class="device-content compact-device-row">
+                    <div class="chip-icon">
+                        ESP
+                    </div>
+
+                    <div class="device-details">
+                        <div class="device-name" id="deviceName">
+                            No device
+                        </div>
+                        <div class="device-port" id="devicePort">
+                            Connect a device via USB
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="connect-button"
+                    id="connectButton"
+                >
+                    <span>🔌</span>
+                    CONNECT ESP32
+                </button>
+
+                <!-- CHIP INFORMATION: terminal-style telemetry at the bottom of Devices -->
+                <div class="chip-info hidden compact-chip-info" id="chipInfo">
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>CHIP : </span><strong id="infoChip">-</strong></div>
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>DESCRIPTION: </span><strong id="infoDescription">-</strong></div>
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>REVISION : </span><strong id="infoRevision">—</strong></div>
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>FEATURES : </span><strong id="infoFeatures">—</strong></div>
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>Auto-detected Flash size: </span><strong id="infoAutoFlash">—</strong></div>
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>FLASH : </span><strong id="infoFlash">—</strong></div>
+                    <div class="chip-terminal-line"><span class="chip-terminal-prefix">›</span><span>PSRAM : </span><strong id="infoPsram">—</strong></div>
+                </div>
+
+                <div
+                    class="chip-warning hidden compact-chip-warning"
+                    id="chipWarning">
+                    <div class="warning-icon">!</div>
+                    <div>
+                        <strong>CHIP MISMATCH</strong>
+                        <div id="chipWarningText">
+                            Selected chip does not match detected chip.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- FLASH SETTINGS -->
+            <div class="card settings-card compact-settings-card">
+
+                <div class="card-header">
+
+                    <div>
+                        <div class="card-title">
+                            Flash Settings
+                        </div>
+
+                        <div class="card-description">
+                            Firmware configuration
+                        </div>
+                    </div>
+
+                    <div class="settings-icon">
+                        ⚙
+                    </div>
+
+                </div>
+
+
+                <div class="setting">
+
+                    <label>
+                        Flash address
+                    </label>
+
+                    <select id="flashAddress">
+
+                        <option value="auto" selected>
+                            AUTO — Detect firmware layout
+                        </option>
+
+                        <option value="0x0000">
+                            0x0000 — Merged / Full Image
+                        </option>
+
+                        <option value="0x1000">
+                            0x1000 — Bootloader
+                        </option>
+
+                        <option value="0x8000">
+                            0x8000 — Partition Table
+                        </option>
+
+                        <option value="0x10000">
+                            0x10000 — Application .BIN
+                        </option>
+
+                        <option value="0x20000">
+                            0x20000 — Custom
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="setting">
+                    <label>
+                        Erase flash
+                    </label>
+                    <label class="switch">
+                        <input type="checkbox" id="eraseFlash" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting flash-tools-setting">
+                    <label>Flash tools</label>
+                    <div class="flash-tools">
+                        <button class="secondary-button compact-action" id="readFlashButton" type="button">
+                            ◉ READ FLASH
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FLASH -->
+        <section class="flash-section compact-flash-section">
+
+            <button
+                class="flash-button"
+                id="flashButton"
+                disabled
+            >
+
+                <span class="flash-icon">
+                    ⚡
+                </span>
+
+                <span>
+                    FLASH ESP32
+                </span>
+
+            </button>
+
+
+            <div
+                class="progress-container hidden"
+                id="progressContainer"
+            >
+
+                <div class="progress-top">
+
+                    <span>
+                        Flashing firmware
+                    </span>
+
+                    <span id="progressPercent">
+                        0%
+                    </span>
+
+                </div>
+
+                <div class="progress-bar">
+
+                    <div
+                        class="progress-fill"
+                        id="progressFill"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- TERMINAL -->
+        <section class="card terminal-card">
+
+            <div class="terminal-header">
+
+                <div class="terminal-title">
+
+                    <span class="terminal-dot"></span>
+
+                    TERMINAL <span class="terminal-mode">CHIP DEBUG / ESPTOOL</span>
+
+                </div>
+
+                <button
+                    class="clear-button"
+                    id="clearLog"
+                >
+                    CLEAR
+                </button>
+
+            </div>
+
+
+            <div
+                class="terminal"
+                id="terminal"
+            >
+
+                <div class="log-line system">
+                    <span class="log-prefix">›</span>
+                    <span>ESP32 Flasher ready.</span>
+                </div>
+
+                <div class="log-line">
+                    <span class="log-prefix">›</span>
+                    <span>Waiting for device...</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- FIRMWARE GUIDE — BOTTOM OF PAGE -->
+        <section class="card firmware-guide-card" id="firmwareGuideCard">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Firmware Guide</div>
+                    <div class="card-description">Documentation, setup instructions and firmware notes</div>
+                </div>
+                <div class="file-icon">DOC</div>
+            </div>
+
+            <div class="guide-toolbar">
+                <div class="guide-status" id="guideStatus">VIEW-ONLY • PUBLIC</div>
+                <button class="secondary-button" id="adminLogoutButton" type="button" hidden>LOGOUT</button>
+                <button class="secondary-button" id="guideRefreshButton" type="button">REFRESH</button>
+            </div>
+
+            <div class="guide-admin-panel hidden" id="guideAdminPanel" hidden>
+                <div class="guide-admin-heading">ADMIN DOCUMENT MANAGER</div>
+                <div class="guide-admin-row">
+                    <input id="guideTitleInput" type="text" placeholder="Document title" maxlength="120">
+                    <label class="guide-file-picker" for="guideFileInput">📄 CHOOSE PDF / DOCX</label>
+                    <input id="guideFileInput" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                    <button class="secondary-button guide-upload-button" id="guideUploadButton" type="button">⬆ LOAD DOCUMENT</button>
+                    <button class="secondary-button danger-button" id="guideDeleteButton" type="button">DELETE</button>
+                </div>
+                <div class="guide-selected-file" id="guideSelectedFile">No document selected.</div>
+                <div class="guide-admin-hint">Choose a PDF or DOCX, then press LOAD DOCUMENT. The file is saved on the server.</div>
+            </div>
+
+            <div class="guide-selector-row">
+                <select id="guideSelect" aria-label="Firmware Guide">
+                    <option value="">Select a guide...</option>
+                </select>
+            </div>
+
+            <div class="guide-empty-state" id="guideEmptyState">Chưa có Firmware Guide.</div>
+            <div class="guide-viewer" id="guideViewer" hidden>
+                <article class="guide-content" id="guideContent"></article>
+            </div>
+        </section>
+
+
+
+        <!-- ADMIN ACCESS MODAL (hidden behind the Settings icon) -->
+        <div class="admin-modal" id="adminModal" hidden>
+            <div class="admin-modal-backdrop" id="adminModalBackdrop"></div>
+            <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+                <button class="admin-modal-close" id="adminModalClose" type="button" aria-label="Close">×</button>
+                <div class="admin-modal-kicker">ECM • SYSTEM</div>
+                <h2 id="adminModalTitle">Administrator Access</h2>
+                <p>Private controls for Firmware Guide management.</p>
+                <div id="adminLoginBox">
+                    <label for="adminPasswordInput">Admin password</label>
+                    <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="Enter admin password">
+                    <button class="admin-modal-action" id="adminLoginAction" type="button">SIGN IN</button>
+                    <div class="admin-modal-error" id="adminLoginError" hidden></div>
+                </div>
+                <div id="adminSignedInBox" hidden>
+                    <div class="admin-success">✓ ADMIN ACCESS ENABLED</div>
+                    <p class="admin-modal-note">You can now upload or delete Firmware Guide documents.</p>
+                    <button class="admin-modal-action" id="adminManageAction" type="button">GO TO GUIDE</button>
+                </div>
+            </div>
         </div>
 
-        <!-- PHƯƠNG ÁN 1 -->
-        <div id="contentPa1" class="tab-content active">
-            <div class="file-group">
-                <label>1. Bootloader:</label>
-                <input type="file" id="bootloaderFile" accept=".bin">
-                Offset: <input type="text" value="0x0000" style="width:70px; text-align:center;" readonly>
+        <!-- FOOTER -->
+        <footer class="site-footer">
+            <div class="footer-brand">vovuong<span>Ecu</span></div>
+            <div class="footer-meta">
+                <span>© 2026 vovuongEcu</span>
+                <span class="footer-separator">•</span>
+                <span>ESP32 Web Flasher</span>
+                <span class="footer-separator">•</span>
+                <span>Web Serial</span>
+                <span class="footer-separator">•</span>
+                <span>esptool-js</span>
             </div>
-            <div class="file-group">
-                <label>2. Partition Table:</label>
-                <input type="file" id="partitionFile" accept=".bin">
-                Offset: <input type="text" value="0x8000" style="width:70px; text-align:center;" readonly>
+            <div class="footer-contact">
+                <a href="mailto:contact.winking@gmail.com">✉ contact.winking@gmail.com</a>
+                <span class="footer-separator">|</span>
+                <a href="tel:0904421209">☎ 0904421209</a>
             </div>
-            <div class="file-group">
-                <label>3. App (Chính):</label>
-                <input type="file" id="appFile" accept=".bin">
-                Offset: <input type="text" value="0x10000" style="width:70px; text-align:center;" readonly>
-            </div>
-            <button id="flashPa1Btn" onclick="napBaFile()" disabled style="background: #28a745; margin-top: 10px;">⚡ Bắt đầu nạp 3 file</button>
-        </div>
+            <div class="footer-tagline">ECU REPAIR&nbsp;&nbsp;•&nbsp;&nbsp;IOT DEVELOPMENT&nbsp;&nbsp;•&nbsp;&nbsp;SMART SOLUTIONS</div>
+        </footer>
 
-        <!-- PHƯƠNG ÁN 2 -->
-        <div id="contentPa2" class="tab-content">
-            <div class="file-group">
-                <label>File Gộp (.bin):</label>
-                <input type="file" id="mergedFile" accept=".bin">
-                Offset: <input type="text" value="0x0" style="width:70px; text-align:center;" readonly>
-            </div>
-            <button id="flashPa2Btn" onclick="napFileGop()" disabled style="background: #28a745; margin-top: 10px;">⚡ Bắt đầu nạp file gộp</button>
-        </div>
-    </div>
+    </main>
 
-    <h3>Nhật ký hoạt động:</h3>
-    <div id="log" class="log"></div>
+    <!-- Nhưng có một điểm: khi dùng import, app.js phải chạy như module. -->
+    <!-- <script src="app.js"></script> -->
+    <script type="module" src="app.js"></script>
 
-    <script>
-        const ESPLoader = window.esptooljs.ESPLoader;
-        const Transport = window.esptooljs.Transport;
-
-        let transport = null;
-        let esploader = null;
-
-        const logDiv = document.getElementById("log");
-        const statusText = document.getElementById("statusText");
-        const connectBtn = document.getElementById("connectBtn");
-        const eraseBtn = document.getElementById("eraseBtn");
-        const flashPa1Btn = document.getElementById("flashPa1Btn");
-        const flashPa2Btn = document.getElementById("flashPa2Btn");
-
-        function log(text) {
-            logDiv.innerHTML += text + "<br>";
-            logDiv.scrollTop = logDiv.scrollHeight;
-        }
-
-        function chuyenPhuongAn(pa) {
-            document.getElementById("tabPa1").className = (pa === 'pa1') ? "tab active" : "tab";
-            document.getElementById("tabPa2").className = (pa === 'pa2') ? "tab active" : "tab";
-            document.getElementById("contentPa1").className = (pa === 'pa1') ? "tab-content active" : "tab-content";
-            document.getElementById("contentPa2").className = (pa === 'pa2') ? "tab-content active" : "tab-content";
-        }
-
-        function clickTabPhuongAn2() {
-            chuyenPhuongAn('pa2');
-            log("📂 Đã chuyển giao diện sang: <b>Phương án 2</b>");
-        }
-
-        async function ketNoiThietBi() {
-            let device;
-            try {
-                device = await navigator.serial.requestPort();
-            } catch (err) {
-                log(`<span style="color:orange;">⚠️ Bạn đã đóng cửa sổ chọn cổng COM!</span>`);
-                return;
-            }
-
-            try {
-                statusText.textContent = "Đang kết nối...";
-                statusText.style.color = "orange";
-                
-                transport = new Transport(device);
-                esploader = new ESPLoader({
-                    transport: transport,
-                    baudrate: 921600,
-                    terminal: {
-                        clean() { logDiv.innerHTML = ""; },
-                        writeData(data) { log(data); },
-                        writeLine(data) { log(data); }
-                    }
-                });
-
-                log("⏳ Đang bắt tay và đọc chip...");
-                const chipName = await esploader.main();
-
-                statusText.textContent = `Đã kết nối: ${chipName}`;
-                statusText.style.color = "green";
-                connectBtn.textContent = "🔌 Đã Kết Nối";
-
-                eraseBtn.disabled = false;
-                flashPa1Btn.disabled = false;
-                flashPa2Btn.disabled = false;
-                
-                log(`✅ <b>ĐÃ KẾT NỐI THÀNH CÔNG!</b> Chip: <b>${chipName}</b> sẵn sàng.`);
-            } catch (err) {
-                log(`❌ Lỗi kết nối: ${err.message}`);
-                statusText.textContent = "Kết nối thất bại";
-                statusText.style.color = "red";
-            }
-        }
-
-        function docFilePhânVùng(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = (e) => reject(e);
-                reader.readAsArrayBuffer(file);
-            });
-        }
-
-        async function napBaFile() {
-            const bootF = document.getElementById("bootloaderFile").files;
-            const partF = document.getElementById("partitionFile").files;
-            const appF = document.getElementById("appFile").files;
-            if (bootF.length === 0 || partF.length === 0 || appF.length === 0) { alert("Vui lòng chọn đủ 3 file!"); return; }
-            try {
-                log("⚡ Đang ghi dữ liệu phân vùng vào bộ nhớ Flash...");
-                const fileArray = [];
-                const bBin = await docFilePhânVùng(bootF[0]);
-                fileArray.push({ data: new Uint8Array(bBin), address: 0x0000 });
-                const pBin = await docFilePhânVùng(partF[0]);
-                fileArray.push({ data: new Uint8Array(pBin), address: 0x8000 });
-                const aBin = await docFilePhânVùng(appF[0]);
-                fileArray.push({ data: new Uint8Array(aBin), address: 0x10000 });
-                await esploader.write_flash(fileArray, "keep", undefined, undefined, false, true);
-                log("🎉 <b>NẠP FIRMWARE THÀNH CÔNG!</b> Nhấn nút RST.");
-            } catch (err) { log(`❌ Lỗi nạp: ${err.message}`); }
-        }
-
-        async function napFileGop() {
-            const fileF = document.getElementById("mergedFile").files;
-            if (fileF.length === 0) { alert("Vui lòng chọn file .bin đã gộp!"); return; }
-            try {
-                log("⚡ Đang ghi file gộp từ địa chỉ 0x0...");
-                const binary = await docFilePhânVùng(fileF[0]);
-                const fileArray = [{ data: new Uint8Array(binary), address: 0x0 }];
-                await esploader.write_flash(fileArray, "keep", undefined, undefined, false, true);
-                log("🎉 <b>NẠP FILE GỘP THÀNH CÔNG!</b> Nhấn nút RST.");
-            } catch (err) { log(`❌ Lỗi nạp file gộp: ${err.message}`); }
-        }
-
-        async function xoaBoNhoFlash() {
-            if (!esploader) return;
-            if (confirm("Bạn có chắc chắn muốn xóa bộ nhớ mạch?")) {
-                try { log("⏳ Đang xóa toàn bộ Flash..."); await esploader.erase_flash(); log("✅ Xóa thành công!"); } catch (err) { log(`❌ Lỗi: ${err.message}`); }
-            }
-        }
-    </script>
+    <script src="guide.js"></script>
 </body>
 </html>
