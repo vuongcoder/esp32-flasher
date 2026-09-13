@@ -36,34 +36,51 @@ Supported target devices are defined in `config/chips.js`. Add one object with `
 
 Board variants such as ESP32-S3 Super Mini can share the `ESP32-S3` silicon family, keeping firmware compatibility family-based. Set `enabled: false` to hide a device without deleting its definition.
 
-/-------------------------------------------------------------------
-config/
-├── chips.js       ← danh sách chip/board
-└── firmware.js    ← danh sách Web Firmware
+## Web Firmware Database
 
-them chi: mo file chips.js de them chip
+Built-in Web Firmware entries are now managed in:
 
+`config/firmware.js`
 
----------- them ban firmware vao he thong web ------
-firmware/
-└── esp32-c3-test.bin
+To add a firmware, add one object:
 
-
-config/firmware.js: co idinh dang nhu sau
-
-
+```js
 {
-    id: "esp32-c3-test",
-    label: "ESP32-C3 Test Firmware",
-    family: "ESP32-C3",
-    file: "./firmware/esp32-c3-test.bin",
+    id: "my-firmware",
+    label: "My Firmware: ESP32-S3",
+    family: "ESP32-S3",
+    file: "./firmware/my-firmware.bin",
     mode: "auto",
     enabled: true
 }
+```
 
+Put the matching `.bin` file in the `firmware/` folder. The firmware will appear automatically in the Web Firmware dropdown for compatible chip families.
 
-Tạm ẩn firmware
+To temporarily hide a firmware without deleting its configuration, use:
 
-Không muốn xóa cấu hình:
-
+```js
 enabled: false
+```
+
+To remove it completely, delete its object from `config/firmware.js`.
+
+`family` must match the chip family used by the Chip Database, for example `ESP32`, `ESP32-S3`, `ESP32-C3`, `ESP32-C6`, etc.
+
+`mode`:
+- `auto`: normal firmware image analysis.
+- `full`: merged/full-image workflow used by the existing CKP backup preset.
+
+Selecting Web Firmware only prepares it. The actual flash still starts only when the main `FLASH ESP32` button is pressed.
+
+
+## Persistent Visitor Counter
+The footer now shows **TOTAL VISITS**. Each page load increments the counter through `GET /api/visits`. The value is persisted in `data/visitors.json`, so it survives normal server restarts as long as the host keeps the filesystem persistent.
+
+Example `data/visitors.json`:
+```json
+{
+  "count": 1234
+}
+```
+This is a visit counter, not a unique-user counter: refreshing/reopening the page counts another visit.

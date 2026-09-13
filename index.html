@@ -16,6 +16,15 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="compact-ui.css">
+
+<style>
+.home-button{display:flex!important;align-items:center;justify-content:center;text-decoration:none;font-size:28px;line-height:1;}
+.language-settings{margin:18px 0 14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.10);}
+.language-settings-title{font-size:11px;letter-spacing:.14em;opacity:.7;margin-bottom:9px;}
+.language-switcher{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.language-button{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;border-radius:8px;padding:10px 8px;cursor:pointer;font-weight:700;}
+.language-button.active{border-color:rgba(80,180,255,.8);background:rgba(80,180,255,.12);}
+</style>
 </head>
 
 <body>
@@ -28,7 +37,7 @@
 
         <!-- DEMO HEADER / BRAND -->
         <header class="header demo-header">
-            <button class="demo-nav-button" type="button" aria-label="Menu">☰</button>
+            <a class="demo-nav-button home-button" id="homeButton" href="./index.html" aria-label="Home" title="Home">⌂</a>
             <a class="demo-header-logo" href="#" aria-label="ECM voVuong">
                 <img src="assets/ecm-vovuong-logo.png" alt="ECM voVuong">
             </a>
@@ -41,7 +50,7 @@
                 <span class="status-dot"></span>
                 <span id="statusText">DEVICE NOT CONNECTED</span>
             </div>
-            <p>Professional ESP32 firmware tools.</p>
+            <p>Professional ESP32 firmware tools .</p>
         </section>
 
 
@@ -52,11 +61,11 @@
 
                 <div>
                     <div class="card-title">
-                        Firmware
+                        Choose your firmware
                     </div>
 
                     <div class="card-description">
-                        upload your firmware
+                        Select ESP32 your firmware 
                     </div>
                 </div>
 
@@ -146,10 +155,11 @@
                             </div>
                             <div id="firmwareTargetConfirm" class="firmware-target-confirm hidden">
                                 <select id="firmwareTargetSelect" aria-label="Firmware target confirmation">
-                                    <option value="">CONFIRM TARGET…</option>
+                                   <!-- <option value="">CONFIRM TARGET…</option>
                                     <option value="ESP32">ESP32</option>
                                     <option value="ESP32-S3">ESP32-S3</option>
                                     <option value="ESP32-C3">ESP32-C3</option>
+                                -->
                                 </select>
                                 <label>
                                     <input type="checkbox" id="firmwareTargetCheckbox">
@@ -179,23 +189,23 @@
         <section class="card web-firmware-card compact-web-firmware-card">
             <div class="web-firmware-heading">
                 <div>
-                    <div class="card-title">Select Firmware</div>
-                    <div class="card-description">choose firmware according to the pre-built project • press FLASH ESP32 to start</div>
+                    <div class="card-title">Select Firmware available</div>
+                    <div class="card-description">firmware according to the available project</div>
                 </div>
-                <div class="web-firmware-badge">WEB</div>
+                <div class="web-firmware-badge"></div>
             </div>
 
             <div class="web-firmware-select-wrap">
                 <span class="web-firmware-prefix">›</span>
                 <select id="webFirmwareSelect" aria-label="Web firmware">
-                    <option value="">SELECT FIRMWARE </option>
+                    <option value="">SELECT WEB FIRMWARE</option>
                 </select>
                 <span class="web-firmware-chevron">⌄</span>
             </div>
 
             <div class="web-firmware-note">
                 <span class="web-firmware-dot"></span>
-                Only one source can be active: LOCAL .BIN or WEB FIRMWARE
+                Only one source can be active: LOCAL .BIN or firmware according to the available projec
             </div>
         </section>
 
@@ -516,6 +526,13 @@
                 <div class="admin-modal-kicker">ECM • SYSTEM</div>
                 <h2 id="adminModalTitle">Administrator Access</h2>
                 <p>Private controls for Firmware Guide management.</p>
+                <div class="language-settings">
+                    <div class="language-settings-title">LANGUAGE / NGÔN NGỮ</div>
+                    <div class="language-switcher" role="group" aria-label="Language">
+                        <button type="button" class="language-button" id="languageEnglish">🇬🇧 English</button>
+                        <button type="button" class="language-button" id="languageVietnamese">🇻🇳 Tiếng Việt</button>
+                    </div>
+                </div>
                 <div id="adminLoginBox">
                     <label for="adminPasswordInput">Admin password</label>
                     <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="Enter admin password">
@@ -532,22 +549,24 @@
 
         <!-- FOOTER -->
         <footer class="site-footer">
+            
             <div class="footer-brand">vovuong<span>Ecu</span></div>
             <div class="footer-meta">
                 <span>© 2026 vovuongEcu</span>
                 <span class="footer-separator">•</span>
                 <span>ESP32 Web Flasher</span>
                 <span class="footer-separator">•</span>
-                <span>Web Serial</span>
+                <span>ECU REPAIR</span>
                 <span class="footer-separator">•</span>
                 <span>esptool-js</span>
             </div>
             <div class="footer-contact">
                 <a href="mailto:contact.winking@gmail.com">✉ contact.winking@gmail.com</a>
                 <span class="footer-separator">|</span>
-                <a href="tel:0904421209">☎ 0904421209</a>
+                <a href="tel:0904421209">☎ 0904421209 </a>
             </div>
-            <div class="footer-tagline">ECU REPAIR&nbsp;&nbsp;•&nbsp;&nbsp;IOT DEVELOPMENT&nbsp;&nbsp;•&nbsp;&nbsp;SMART SOLUTIONS</div>
+            <!--div class="footer-tagline">ECU REPAIR&nbsp;&nbsp;•&nbsp;&nbsp;IOT DEVELOPMENT&nbsp;&nbsp;•&nbsp;&nbsp;SMART SOLUTIONS</div> -->
+            <div class="footer-tagline" aria-live="polite">•<span class="visitor-label"> | TOTAL VISITS</span><span class="visitor-separator">•</span><span id="visitorCount">—</span></div>
         </footer>
 
     </main>
@@ -556,6 +575,122 @@
     <!-- <script src="app.js"></script> -->
     <script type="module" src="app.js"></script>
 
+    <script>
+(function(){
+  const T={
+    en:{
+      "Professional ESP32 firmware tools .":"Professional ESP32 firmware tools.",
+      "Choose your firmware":"Choose your firmware","Select ESP32 your firmware":"Select your ESP32 firmware",
+      "Drop firmware here":"Drop firmware here","or select one or more .BIN files from your computer":"or select one or more .BIN files from your computer",
+      "SELECT .BIN FILE":"SELECT .BIN FILE","Waiting for firmware analysis…":"Waiting for firmware analysis…",
+      "FIRMWARE TARGET":"FIRMWARE TARGET","I confirm this firmware target":"I confirm this firmware target",
+      "Select Firmware available":"Select available Firmware","firmware according to the available project":"Firmware according to the available project",
+      "SELECT WEB FIRMWARE":"SELECT WEB FIRMWARE","Only one source can be active: LOCAL .BIN or firmware according to the available projec":"Only one source can be active: LOCAL .BIN or available project firmware",
+      "Device":"Device","USB serial connection":"USB serial connection","TARGET CHIP":"TARGET CHIP","No device":"No device",
+      "Connect a device via USB":"Connect a device via USB","CONNECT ESP32":"CONNECT ESP32","Flash Settings":"Flash Settings",
+      "Firmware configuration":"Firmware configuration","Flash address":"Flash address","AUTO — Detect firmware layout":"AUTO — Detect firmware layout",
+      "Erase flash":"Erase flash","Flash tools":"Flash tools","◉ READ FLASH":"◉ READ FLASH","FLASH ESP32":"FLASH ESP32",
+      "Flashing firmware":"Flashing firmware","TERMINAL":"TERMINAL","CLEAR":"CLEAR","ESP32 Flasher ready.":"ESP32 Flasher ready.",
+      "Waiting for device...":"Waiting for device...","Firmware Guide":"Firmware Guide",
+      "Documentation, setup instructions and firmware notes":"Documentation, setup instructions and firmware notes",
+      "VIEW-ONLY • PUBLIC":"VIEW-ONLY • PUBLIC","REFRESH":"REFRESH","ADMIN DOCUMENT MANAGER":"ADMIN DOCUMENT MANAGER",
+      "Document title":"Document title","📄 CHOOSE PDF / DOCX":"📄 CHOOSE PDF / DOCX","⬆ LOAD DOCUMENT":"⬆ LOAD DOCUMENT",
+      "DELETE":"DELETE","No document selected.":"No document selected.",
+      "Choose a PDF or DOCX, then press LOAD DOCUMENT. The file is saved on the server.":"Choose a PDF or DOCX, then press LOAD DOCUMENT. The file is saved on the server.",
+      "Select a guide...":"Select a guide...","Chưa có Firmware Guide.":"No Firmware Guide yet.",
+      "Administrator Access":"Administrator Access","Private controls for Firmware Guide management.":"Private controls for Firmware Guide management.",
+      "Admin password":"Admin password","Enter admin password":"Enter admin password","SIGN IN":"SIGN IN",
+      "✓ ADMIN ACCESS ENABLED":"✓ ADMIN ACCESS ENABLED","You can now upload or delete Firmware Guide documents.":"You can now upload or delete Firmware Guide documents.",
+      "GO TO GUIDE":"GO TO GUIDE","TOTAL VISITS":"TOTAL VISITS","LANGUAGE / NGÔN NGỮ":"LANGUAGE / LANGUAGE",
+      "DEVICE CONNECTED":"DEVICE CONNECTED","DEVICE NOT CONNECTED":"DEVICE NOT CONNECTED",
+      "USB Serial / ESP ROM":"USB Serial / ESP ROM","No device":"No device","Connect a device via USB":"Connect a device via USB",
+      "🔌 CONNECT ESP32":"🔌 CONNECT ESP32","⛓ DISCONNECT":"⛓ DISCONNECT","FLASH COMPLETE":"FLASH COMPLETE",
+      "FLASHING...":"FLASHING...","Terminal cleared.":"Terminal cleared.",
+      "ADMIN MODE • UPLOAD / DELETE ENABLED":"ADMIN MODE • UPLOAD / DELETE ENABLED",
+      "Chọn tài liệu để xem.":"Select a document to view.","Chưa có Firmware Guide. Admin có thể đăng nhập và upload PDF hoặc DOCX.":"No Firmware Guide yet. Admin can sign in and upload PDF or DOCX.",
+      "Không thể tải danh sách Firmware Guide.":"Unable to load Firmware Guide list.","Không thể mở tài liệu.":"Unable to open document.",
+      "Hãy chọn file PDF hoặc DOCX.":"Please choose a PDF or DOCX file.","Chỉ hỗ trợ PDF hoặc DOCX.":"Only PDF or DOCX is supported.",
+      "Upload thất bại.":"Upload failed.","Đã upload tài liệu.":"Document uploaded.","Hãy chọn tài liệu cần xóa.":"Please select a document to delete.",
+      "Xóa Firmware Guide này?":"Delete this Firmware Guide?","Xóa thất bại.":"Delete failed."
+    },
+    vi:{
+      "Professional ESP32 firmware tools .":"Công cụ firmware ESP32 chuyên nghiệp.",
+      "Choose your firmware":"Chọn firmware","Select ESP32 your firmware":"Chọn firmware ESP32 của bạn",
+      "Drop firmware here":"Kéo firmware vào đây","or select one or more .BIN files from your computer":"hoặc chọn một hay nhiều file .BIN từ máy tính",
+      "SELECT .BIN FILE":"CHỌN FILE .BIN","Waiting for firmware analysis…":"Đang chờ phân tích firmware…",
+      "FIRMWARE TARGET":"MỤC TIÊU FIRMWARE","I confirm this firmware target":"Tôi xác nhận đúng mục tiêu firmware này",
+      "Select Firmware available":"Chọn Firmware có sẵn","firmware according to the available project":"Firmware theo dự án có sẵn",
+      "SELECT WEB FIRMWARE":"CHỌN WEB FIRMWARE","Only one source can be active: LOCAL .BIN or firmware according to the available projec":"Chỉ một nguồn được kích hoạt: .BIN LOCAL hoặc firmware của dự án",
+      "Device":"Thiết bị","USB serial connection":"Kết nối USB Serial","TARGET CHIP":"CHIP MỤC TIÊU","No device":"Chưa có thiết bị",
+      "Connect a device via USB":"Kết nối thiết bị qua USB","CONNECT ESP32":"KẾT NỐI ESP32","Flash Settings":"Cài đặt Flash",
+      "Firmware configuration":"Cấu hình firmware","Flash address":"Địa chỉ Flash","AUTO — Detect firmware layout":"TỰ ĐỘNG — Phát hiện layout firmware",
+      "Erase flash":"Xóa Flash","Flash tools":"Công cụ Flash","◉ READ FLASH":"◉ ĐỌC FLASH","FLASH ESP32":"FLASH ESP32",
+      "Flashing firmware":"Đang Flash firmware","TERMINAL":"TERMINAL","CLEAR":"XÓA","ESP32 Flasher ready.":"ESP32 Flasher sẵn sàng.",
+      "Waiting for device...":"Đang chờ thiết bị...","Firmware Guide":"Hướng dẫn Firmware",
+      "Documentation, setup instructions and firmware notes":"Tài liệu, hướng dẫn cài đặt và ghi chú firmware",
+      "VIEW-ONLY • PUBLIC":"CHỈ XEM • CÔNG KHAI","REFRESH":"LÀM MỚI","ADMIN DOCUMENT MANAGER":"QUẢN LÝ TÀI LIỆU ADMIN",
+      "Document title":"Tiêu đề tài liệu","📄 CHOOSE PDF / DOCX":"📄 CHỌN PDF / DOCX","⬆ LOAD DOCUMENT":"⬆ TẢI TÀI LIỆU",
+      "DELETE":"XÓA","No document selected.":"Chưa chọn tài liệu.",
+      "Choose a PDF or DOCX, then press LOAD DOCUMENT. The file is saved on the server.":"Chọn PDF hoặc DOCX rồi nhấn TẢI TÀI LIỆU. File sẽ được lưu trên server.",
+      "Select a guide...":"Chọn tài liệu...","Chưa có Firmware Guide.":"Chưa có Firmware Guide.",
+      "Administrator Access":"Quyền quản trị","Private controls for Firmware Guide management.":"Khu vực riêng để quản lý Firmware Guide.",
+      "Admin password":"Mật khẩu Admin","Enter admin password":"Nhập mật khẩu Admin","SIGN IN":"ĐĂNG NHẬP",
+      "✓ ADMIN ACCESS ENABLED":"✓ ĐÃ BẬT QUYỀN ADMIN","You can now upload or delete Firmware Guide documents.":"Bạn có thể tải lên hoặc xóa tài liệu Firmware Guide.",
+      "GO TO GUIDE":"ĐẾN FIRMWARE GUIDE","TOTAL VISITS":"TỔNG LƯỢT TRUY CẬP","LANGUAGE / NGÔN NGỮ":"NGÔN NGỮ / LANGUAGE",
+      "DEVICE CONNECTED":"ĐÃ KẾT NỐI THIẾT BỊ","DEVICE NOT CONNECTED":"THIẾT BỊ CHƯA KẾT NỐI",
+      "USB Serial / ESP ROM":"USB Serial / ESP ROM","No device":"Chưa có thiết bị","Connect a device via USB":"Kết nối thiết bị qua USB",
+      "🔌 CONNECT ESP32":"🔌 KẾT NỐI ESP32","⛓ DISCONNECT":"⛓ NGẮT KẾT NỐI","FLASH COMPLETE":"FLASH HOÀN TẤT",
+      "FLASHING...":"ĐANG FLASH...","Terminal cleared.":"Đã xóa terminal.",
+      "ADMIN MODE • UPLOAD / DELETE ENABLED":"CHẾ ĐỘ ADMIN • ĐÃ BẬT TẢI LÊN / XÓA",
+      "Chọn tài liệu để xem.":"Chọn tài liệu để xem.","Chưa có Firmware Guide. Admin có thể đăng nhập và upload PDF hoặc DOCX.":"Chưa có Firmware Guide. Admin có thể đăng nhập và upload PDF hoặc DOCX.",
+      "Không thể tải danh sách Firmware Guide.":"Không thể tải danh sách Firmware Guide.","Không thể mở tài liệu.":"Không thể mở tài liệu.",
+      "Hãy chọn file PDF hoặc DOCX.":"Hãy chọn file PDF hoặc DOCX.","Chỉ hỗ trợ PDF hoặc DOCX.":"Chỉ hỗ trợ PDF hoặc DOCX.",
+      "Upload thất bại.":"Tải tài liệu thất bại.","Đã upload tài liệu.":"Đã tải tài liệu.","Hãy chọn tài liệu cần xóa.":"Hãy chọn tài liệu cần xóa.",
+      "Xóa Firmware Guide này?":"Xóa Firmware Guide này?","Xóa thất bại.":"Xóa thất bại."
+    }
+  };
+  window.ECM_LANG=localStorage.getItem("ecm-language")||"vi";
+  const original=new WeakMap();
+  function applyLanguage(){
+    const map=T[window.ECM_LANG]||T.vi;
+    document.documentElement.lang=window.ECM_LANG==="vi"?"vi":"en";
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT), nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      if(!n.nodeValue.trim())return;
+      if(!original.has(n))original.set(n,n.nodeValue);
+      const raw=original.get(n), key=raw.trim();
+      if(map[key]) n.nodeValue=raw.replace(key,map[key]);
+    });
+    document.querySelectorAll(".language-button").forEach(b=>b.classList.toggle("active",b.id===("language"+(window.ECM_LANG==="vi"?"Vietnamese":"English"))));
+    const home=document.getElementById("homeButton"); if(home)home.title=window.ECM_LANG==="vi"?"Trang chủ":"Home";
+    window.dispatchEvent(new CustomEvent("ecm-language-change",{detail:{language:window.ECM_LANG}}));
+  }
+  window.ECM_T=x=>{const lang=T[window.ECM_LANG]||T.vi; return lang[x]||x;};
+  window.ECM_setLanguage=lang=>{if(!T[lang])return;window.ECM_LANG=lang;localStorage.setItem("ecm-language",lang);applyLanguage();};
+  document.addEventListener("click",e=>{
+    if(e.target.closest("#languageEnglish"))window.ECM_setLanguage("en");
+    if(e.target.closest("#languageVietnamese"))window.ECM_setLanguage("vi");
+  });
+  window.addEventListener("DOMContentLoaded",applyLanguage);
+  setTimeout(applyLanguage,0);
+})();
+</script>
+
+<script>
+        (async function loadVisitorCounter(){
+            const el = document.getElementById('visitorCount');
+            if (!el) return;
+            try {
+                const r = await fetch('/api/visits', { cache: 'no-store' });
+                if (!r.ok) throw new Error('Visitor counter unavailable');
+                const data = await r.json();
+                el.textContent = Number(data.count || 0).toLocaleString('en-US');
+            } catch (_) {
+                el.textContent = '—';
+            }
+        })();
+    </script>
     <script src="guide.js"></script>
 </body>
 </html>

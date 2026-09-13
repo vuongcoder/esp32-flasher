@@ -862,3 +862,10 @@ body {
 .admin-modal-error{margin-top:10px;color:#ff8f8f;font-size:11px}.admin-success{padding:12px;border:1px solid rgba(0,220,150,.3);border-radius:10px;background:rgba(0,190,130,.08);color:#7fffd4;font-size:12px;font-weight:800}
 .admin-modal-note{margin-bottom:8px!important}
 @media(max-width:760px){.admin-modal-panel{padding:22px}}
+
+
+/* Persistent visitor counter */
+.visitor-counter{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;color:#7f9db4;font:700 10px/1.2 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.visitor-counter #visitorCount{color:#8fd9ff;font-size:12px;letter-spacing:.08em;text-shadow:0 0 12px rgba(0,170,255,.22)}
+.visitor-separator{opacity:.45}
+@media(max-width:700px){.visitor-counter{margin-top:14px;font-size:9px}.visitor-counter #visitorCount{font-size:11px}}

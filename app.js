@@ -71,10 +71,10 @@ let detectedChipInfo = null;
 // Only one source may be active: LOCAL upload OR WEB firmware.
 let activeFirmwareSource = null; // "local" | "web"
 let activeWebFirmware = null;
+
 // Web Firmware library is maintained in one place: config/firmware.js.
 // Add / remove / disable Web Firmware entries there.
 const WEB_FIRMWARE_PRESETS = WEB_FIRMWARE_DATABASE;
-
 
 // Chip definitions are maintained in one place: config/chips.js.
 // Board variants may share the same silicon family for firmware compatibility.
@@ -139,6 +139,7 @@ const infoFeatures =
 --------------------------- */
 
 function log(message, type = "") {
+    if (window.ECM_T) message = window.ECM_T(message);
 
     const line = document.createElement("div");
 
@@ -407,15 +408,13 @@ async function connectDevice() {
         );
 
 
-        statusText.textContent =
-            "DEVICE CONNECTED";
+        statusText.textContent = window.ECM_T ? window.ECM_T("DEVICE CONNECTED") : "DEVICE CONNECTED";
 
 
         deviceName.textContent =
             detectedChip;
 
-        devicePort.textContent =
-            "USB Serial / ESP ROM";
+        devicePort.textContent = window.ECM_T ? window.ECM_T("USB Serial / ESP ROM") : "USB Serial / ESP ROM";
 
         connectButton.innerHTML =
             "⛓ DISCONNECT";
@@ -462,11 +461,11 @@ async function connectDevice() {
 
         statusPill.classList.remove("connected");
         connectionIndicator.classList.remove("connected");
-        statusText.textContent = "DEVICE NOT CONNECTED";
-        deviceName.textContent = "No device";
-        devicePort.textContent = "Connect a device via USB";
+        statusText.textContent = window.ECM_T ? window.ECM_T("DEVICE NOT CONNECTED") : "DEVICE NOT CONNECTED";
+        deviceName.textContent = window.ECM_T ? window.ECM_T("No device") : "No device";
+        devicePort.textContent = window.ECM_T ? window.ECM_T("Connect a device via USB") : "Connect a device via USB";
         connectButton.disabled = false;
-        connectButton.innerHTML = "🔌 CONNECT ESP32";
+        connectButton.innerHTML = window.ECM_T ? window.ECM_T("🔌 CONNECT ESP32") : "🔌 CONNECT ESP32";
         chipInfo.classList.add("hidden");
         chipWarning.classList.add("hidden");
         chipInfo.classList.remove("match", "mismatch");
@@ -493,12 +492,12 @@ async function disconnectDevice() {
     espLoader = null;
 
     statusPill.classList.remove("connected");
-    statusText.textContent = "DEVICE NOT CONNECTED";
+    statusText.textContent = window.ECM_T ? window.ECM_T("DEVICE NOT CONNECTED") : "DEVICE NOT CONNECTED";
     connectionIndicator.classList.remove("connected");
-    deviceName.textContent = "No device";
-    devicePort.textContent = "Connect a device via USB";
+    deviceName.textContent = window.ECM_T ? window.ECM_T("No device") : "No device";
+    devicePort.textContent = window.ECM_T ? window.ECM_T("Connect a device via USB") : "Connect a device via USB";
     connectButton.disabled = false;
-    connectButton.innerHTML = "🔌 CONNECT ESP32";
+    connectButton.innerHTML = window.ECM_T ? window.ECM_T("🔌 CONNECT ESP32") : "🔌 CONNECT ESP32";
 
     chipInfo.classList.add("hidden");
     chipWarning.classList.add("hidden");
@@ -1070,11 +1069,11 @@ function setFlashUiLocked(locked) {
     const controls = [firmwareInput, selectFileButton, removeFile, chipType, document.getElementById("flashAddress"), document.getElementById("eraseFlash"), webFirmwareSelect, readFlashButton];
     for (const control of controls) if (control) control.disabled = locked;
     flashButton.classList.toggle("flashing", locked);
-    flashButton.innerHTML = locked ? `<span class="flash-icon">◌</span><span>FLASHING...</span>` : `<span class="flash-icon">⚡</span><span>FLASH ESP32</span>`;
+    flashButton.innerHTML = locked ? `<span class="flash-icon">◌</span><span>${window.ECM_T ? window.ECM_T("FLASHING...") : "FLASHING..."}</span>` : `<span class="flash-icon">⚡</span><span>${window.ECM_T ? window.ECM_T("FLASH ESP32") : "FLASH ESP32"}</span>`;
 }
 
 function setStatusAfterFlash() {
-    statusText.textContent = "FLASH COMPLETE";
+    statusText.textContent = window.ECM_T ? window.ECM_T("FLASH COMPLETE") : "FLASH COMPLETE";
     statusPill.classList.add("connected");
 }
 
@@ -1501,6 +1500,14 @@ function appendRawLog(message) {
     log(message);
 }
 
+
+window.addEventListener("ecm-language-change", () => {
+    if (statusText) statusText.textContent = connected ? (window.ECM_T?.("DEVICE CONNECTED") || "DEVICE CONNECTED") : (window.ECM_T?.("DEVICE NOT CONNECTED") || "DEVICE NOT CONNECTED");
+    if (deviceName && !connected) deviceName.textContent = window.ECM_T?.("No device") || "No device";
+    if (devicePort && !connected) devicePort.textContent = window.ECM_T?.("Connect a device via USB") || "Connect a device via USB";
+    if (connectButton) connectButton.innerHTML = connected ? (window.ECM_T?.("⛓ DISCONNECT") || "⛓ DISCONNECT") : (window.ECM_T?.("🔌 CONNECT ESP32") || "🔌 CONNECT ESP32");
+    if (flashButton && !isFlashing) flashButton.innerHTML = `<span class="flash-icon">⚡</span><span>${window.ECM_T?.("FLASH ESP32") || "FLASH ESP32"}</span>`;
+});
 
 // ---------------- Firmware Guide ----------------
 const guideState = { documents: [], selectedId: null, admin: false };

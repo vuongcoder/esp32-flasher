@@ -12,7 +12,7 @@ function adminUI(){
   const status=$('guideStatus');
   const logoutButton=$('adminLogoutButton');
   if(panel){ panel.hidden=!state.admin; panel.classList.toggle('hidden',!state.admin); }
-  if(status) status.textContent=state.admin?'ADMIN MODE • UPLOAD / DELETE ENABLED':'VIEW-ONLY • PUBLIC';
+  if(status) status.textContent=state.admin?(window.ECM_T?.('ADMIN MODE • UPLOAD / DELETE ENABLED')||'ADMIN MODE • UPLOAD / DELETE ENABLED'):(window.ECM_T?.('VIEW-ONLY • PUBLIC')||'VIEW-ONLY • PUBLIC');
   if(logoutButton) logoutButton.hidden=!state.admin;
   const loginBox=$('adminLoginBox');
   const signedBox=$('adminSignedInBox');
@@ -27,21 +27,21 @@ async function api(url,opt={}){
 }
 async function loadGuides(){
   const r=await fetch('/api/guides',{cache:'no-store'});
-  if(!r.ok) throw Error('Không thể tải danh sách Firmware Guide.');
+  if(!r.ok) throw Error(window.ECM_T?.('Không thể tải danh sách Firmware Guide.')||'Không thể tải danh sách Firmware Guide.');
   const raw=await r.json();
   const guides=Array.isArray(raw)?raw:(raw.guides||[]);
   if(select){
-    select.innerHTML='<option value="">Select a guide...</option>';
+    select.innerHTML=`<option value="">${window.ECM_T?.('Select a guide...')||'Select a guide...'}</option>`;
     for(const g of guides){
       const o=document.createElement('option'); o.value=g.id; o.textContent=g.title; select.appendChild(o);
     }
   }
-  if(empty) empty.textContent=guides.length?'Chọn tài liệu để xem.':'Chưa có Firmware Guide. Admin có thể đăng nhập và upload PDF hoặc DOCX.';
+  if(empty) empty.textContent=guides.length?(window.ECM_T?.('Chọn tài liệu để xem.')||'Chọn tài liệu để xem.'):(window.ECM_T?.('Chưa có Firmware Guide. Admin có thể đăng nhập và upload PDF hoặc DOCX.')||'Chưa có Firmware Guide. Admin có thể đăng nhập và upload PDF hoặc DOCX.');
 }
 async function openGuide(id){
   if(!id){ if(viewer)viewer.hidden=true; if(empty)empty.hidden=false; return; }
   const r=await fetch('/api/guides/'+encodeURIComponent(id),{cache:'no-store'});
-  if(!r.ok) throw Error('Không thể mở tài liệu.');
+  if(!r.ok) throw Error(window.ECM_T?.('Không thể mở tài liệu.')||'Không thể mở tài liệu.');
   const d=await r.json();
   if(empty) empty.hidden=true;
   if(viewer) viewer.hidden=false;
@@ -97,3 +97,8 @@ if(del) del.onclick=async()=>{
   await loadGuides(); await openGuide('');
 };
 adminUI(); loadGuides().catch(e=>console.warn(e.message));
+
+window.addEventListener('ecm-language-change',()=>{
+  adminUI();
+  loadGuides().catch(()=>{});
+});

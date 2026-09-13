@@ -8,13 +8,24 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data', 'guides');
 const META_FILE = path.join(ROOT, 'data', 'guides.json');
+const VISITOR_FILE = path.join(ROOT, 'data', 'visitors.json');
 const sessions = new Map();
 
 if (!ADMIN_PASSWORD) console.warn('WARNING: ADMIN_PASSWORD is not set. Admin login will be disabled.');
 fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(VISITOR_FILE)) fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count: 0 }, null, 2));
 let documents = fs.existsSync(META_FILE) ? JSON.parse(fs.readFileSync(META_FILE, 'utf8')) : [];
 
 function saveMeta() { fs.writeFileSync(META_FILE, JSON.stringify(documents, null, 2)); }
+function getVisitorCount() {
+  try { const data = JSON.parse(fs.readFileSync(VISITOR_FILE, 'utf8')); return Number(data.count) || 0; }
+  catch { return 0; }
+}
+function incrementVisitorCount() {
+  const count = getVisitorCount() + 1;
+  fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count }, null, 2));
+  return count;
+}
 function send(res, code, body, type='application/json') { res.writeHead(code, {'Content-Type': type, 'Cache-Control':'no-store'}); res.end(body); }
 function json(res, code, obj) { send(res, code, JSON.stringify(obj)); }
 function parseCookies(req) { return Object.fromEntries((req.headers.cookie || '').split(';').filter(Boolean).map(x => { const i=x.indexOf('='); return [x.slice(0,i).trim(), decodeURIComponent(x.slice(i+1))]; })); }
@@ -31,6 +42,9 @@ function publicDocs() { return documents.map(({id,title,category,type,filename,u
 function escapeHtml(v){ return String(v||'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c])); }
 
 async function api(req,res,url) {
+  if (req.method==='GET' && url.pathname==='/api/visits') {
+    return json(res,200,{count:incrementVisitorCount()});
+  }
   if (req.method==='GET' && url.pathname==='/api/guides') return json(res,200,publicDocs());
   if (req.method==='GET' && url.pathname==='/api/guides/file') {
     const doc=documents.find(d=>d.id===url.searchParams.get('id'));
