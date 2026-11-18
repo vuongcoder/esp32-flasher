@@ -21,21 +21,21 @@ export const WEB_FIRMWARE_DATABASE = [
         enabled: true
     },
     {
-        id: "ckp-engineer-canbus-simul",
-        label: "CKP-Enginer-CanBus-Simul- ESP32-D0WD-V3",
+        id: "ckp-canbus-simul-firmware",
+        label: "CKP-Enginer-CanBus-Simul-Firmware-v001",
         family: "ESP32",
-        file: "./firmware/ckp-engineer-canbus-simul.bin",
+        file: "./firmware/ckp-canbus-firmware-merged.bin",
         mode: "full",
         enabled: true
     },
-    {
-        id: "canbus-simulator",
-        label: "canbus-simulator- ESP32-D0WD-V3",
-        family: "ESP32",
-        file: "./firmware/canbus-simulator.bin",
-        mode: "full",
-        enabled: true
-    },
+    //{
+    //    id: "canbus-simulator",
+    //    label: "canbus-simulator- ESP32-D0WD-V3",
+    //    family: "ESP32",
+    //    file: "./firmware/canbus-simulator.bin",
+    //    mode: "full",
+    //    enabled: true
+    //},
     {
         id: "custom-firmware-03",
         label: "CUSTOM FIRMWARE 03",
